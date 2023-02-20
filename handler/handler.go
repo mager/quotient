@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"cloud.google.com/go/firestore"
 	"github.com/PullRequestInc/go-gpt3"
 	"github.com/gorilla/mux"
 	"go.uber.org/fx"
@@ -10,8 +11,10 @@ import (
 type Handler struct {
 	fx.In
 
-	Router *mux.Router
-	Log    *zap.SugaredLogger
+	Database *firestore.Client
+	Log      *zap.SugaredLogger
+	Router   *mux.Router
+
 	OpenAI gpt3.Client
 }
 
@@ -25,5 +28,6 @@ func New(h Handler) *Handler {
 func (h *Handler) registerRoutes() {
 	h.Router.HandleFunc("/health", h.health).Methods("GET")
 
+	h.Router.HandleFunc("/me", h.me).Methods("POST")
 	h.Router.HandleFunc("/q", h.getQuote).Methods("POST")
 }
