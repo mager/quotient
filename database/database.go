@@ -20,3 +20,7 @@ func ProvideDB() *firestore.Client {
 }
 
 var Options = ProvideDB
+
+type User struct {
+	Email string `firestore:"email" json:"email"`
+}
