@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/PullRequestInc/go-gpt3"
-	"github.com/kr/pretty"
 )
 
 type GetQuoteReq struct {
@@ -20,12 +19,13 @@ type Quote struct {
 }
 
 type GetQuoteResp struct {
-	Req   GetQuoteReq `json:"req"`
-	Quote Quote       `json:"quote"`
+	Req    GetQuoteReq `json:"req"`
+	Quote  Quote       `json:"quote"`
+	Prompt string      `json:"prompt"`
 }
 
 const (
-	prompt = "Can you provide a famous quote about %s with attribution to the author?"
+	promptTemplate = "Can you provide one famous quote with attribution about %s?"
 )
 
 func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
@@ -37,13 +37,16 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	prompt := fmt.Sprintf(promptTemplate, req.Emotion)
+
 	completion, err := h.OpenAI.Completion(context.TODO(), gpt3.CompletionRequest{
-		Prompt:           []string{fmt.Sprintf(prompt, req.Emotion)},
-		MaxTokens:        gpt3.IntPtr(256),
+		Prompt:           []string{prompt},
+		MaxTokens:        gpt3.IntPtr(64),
 		TopP:             gpt3.Float32Ptr(1),
 		Temperature:      gpt3.Float32Ptr(0.7),
 		FrequencyPenalty: 0,
 		PresencePenalty:  0,
+		LogProbs:         gpt3.IntPtr(1),
 	})
 	if err != nil {
 		h.Log.Error(err.Error())
@@ -58,8 +61,9 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := GetQuoteResp{
-		Req:   req,
-		Quote: adaptQuote(completion.Choices[0].Text),
+		Req:    req,
+		Prompt: prompt,
+		Quote:  adaptQuote(completion.Choices[0].Text),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -69,8 +73,6 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 
 func adaptQuote(q string) Quote {
 	// Parse the string and remove the leading 3 newlines
-
-	pretty.Print(q)
 	return Quote{
 		Text: q,
 		Attr: "Unknown",

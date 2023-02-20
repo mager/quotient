@@ -6,7 +6,10 @@ import (
 )
 
 func ProvideOpenAI(cfg config.Config) gpt3.Client {
-	return gpt3.NewClient(cfg.OpenAIKey)
+	opts := []gpt3.ClientOption{
+		gpt3.WithDefaultEngine("text-davinci-003"),
+	}
+	return gpt3.NewClient(cfg.OpenAIKey, opts...)
 }
 
 var Options = ProvideOpenAI
