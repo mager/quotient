@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/PullRequestInc/go-gpt3"
 )
@@ -32,7 +34,6 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 	var req GetQuoteReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		h.Log.Error(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -72,9 +73,22 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 }
 
 func adaptQuote(q string) Quote {
-	// Parse the string and remove the leading 3 newlines
+	// Strip out new lines
+	q = strings.ReplaceAll(q, "\n", "")
+
+	// Parse out the quote and attribution
+	re := regexp.MustCompile(`^"(.+)"\s+-\s+(.+)$`)
+	match := re.FindStringSubmatch(q)
+
+	if len(match) != 3 {
+		return Quote{
+			Text: strings.ReplaceAll(q, "\"", ""),
+			Attr: "Unknown",
+		}
+	}
+
 	return Quote{
-		Text: q,
-		Attr: "Unknown",
+		Text: match[1],
+		Attr: match[2],
 	}
 }

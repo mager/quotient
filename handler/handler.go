@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/PullRequestInc/go-gpt3"
 	"github.com/gorilla/mux"
 	"go.uber.org/fx"
@@ -28,9 +26,4 @@ func (h *Handler) registerRoutes() {
 	h.Router.HandleFunc("/health", h.health).Methods("GET")
 
 	h.Router.HandleFunc("/q", h.getQuote).Methods("POST")
-}
-
-func (h *Handler) health(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
 }
