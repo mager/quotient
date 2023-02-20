@@ -23,4 +23,5 @@ var Options = ProvideDB
 
 type User struct {
 	Email string `firestore:"email" json:"email"`
+	Name  string `firestore:"name" json:"name"`
 }

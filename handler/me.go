@@ -9,11 +9,13 @@ import (
 
 type MeReq struct {
 	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 type MeResp struct {
 	Email string `json:"email"`
 	ID    string `json:"id"`
+	Name  string `json:"name"`
 }
 
 func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +45,7 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 			// Create user
 			docRef, _, err := users.Add(r.Context(), map[string]interface{}{
 				"email": req.Email,
+				"name":  req.Name,
 			})
 			if err != nil {
 				h.Log.Errorw("Failed to create user", "error", err.Error())
@@ -64,6 +67,7 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp.Email = req.Email
+	resp.Name = req.Name
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
