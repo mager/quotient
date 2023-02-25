@@ -30,4 +30,5 @@ func (h *Handler) registerRoutes() {
 
 	h.Router.HandleFunc("/me", h.me).Methods("POST")
 	h.Router.HandleFunc("/q", h.getQuote).Methods("POST")
+	h.Router.HandleFunc("/history", h.history).Methods("POST")
 }
