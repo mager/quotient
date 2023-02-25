@@ -67,6 +67,8 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 		Quote:  adaptQuote(completion.Choices[0].Text),
 	}
 
+	h.Log.Infow("Got quote", "quote", resp.Quote.Text, "attr", resp.Quote.Attr)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
