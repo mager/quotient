@@ -12,7 +12,8 @@ import (
 )
 
 type GetQuoteReq struct {
-	Emotion string `json:"emotion"`
+	Topic string `json:"topic"`
+	ID    string `json:"id"`
 }
 
 type Quote struct {
@@ -27,7 +28,7 @@ type GetQuoteResp struct {
 }
 
 const (
-	promptTemplate = "Can you provide one famous quote with attribution about %s?"
+	promptTemplate = "Provide me 1 famous quote with attribution about %s?"
 )
 
 func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,7 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt := fmt.Sprintf(promptTemplate, req.Emotion)
+	prompt := fmt.Sprintf(promptTemplate, req.Topic)
 
 	completion, err := h.OpenAI.Completion(context.TODO(), gpt3.CompletionRequest{
 		Prompt:           []string{prompt},
@@ -67,7 +68,26 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 		Quote:  adaptQuote(completion.Choices[0].Text),
 	}
 
-	h.Log.Infow("Got quote", "quote", resp.Quote.Text, "attr", resp.Quote.Attr)
+	h.Log.Infow("Got quote",
+		"quote", resp.Quote.Text,
+		"attr", resp.Quote.Attr,
+		"topic", req.Topic,
+		"user", req.ID,
+	)
+
+	// Add the quote to the database
+	quotes := h.Database.Collection("quotes")
+	_, _, err = quotes.Add(r.Context(), map[string]interface{}{
+		"text":  resp.Quote.Text,
+		"attr":  resp.Quote.Attr,
+		"user":  h.Database.Doc("users/" + req.ID),
+		"topic": req.Topic,
+	})
+	if err != nil {
+		h.Log.Errorw("Failed to add quote to database", "error", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
