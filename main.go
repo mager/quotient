@@ -2,14 +2,14 @@ package main
 
 import (
 	"cloud.google.com/go/firestore"
-	"github.com/PullRequestInc/go-gpt3"
 	"github.com/gorilla/mux"
 	"github.com/mager/quotient/config"
 	"github.com/mager/quotient/database"
 	"github.com/mager/quotient/handler"
 	"github.com/mager/quotient/logger"
-	"github.com/mager/quotient/openai"
+	openaiClient "github.com/mager/quotient/openai"
 	"github.com/mager/quotient/router"
+	openai "github.com/sashabaranov/go-openai"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ func main() {
 			router.Options,
 
 			// APIs
-			openai.Options,
+			openaiClient.Options,
 		),
 		fx.Invoke(
 			Register,
@@ -31,7 +31,7 @@ func main() {
 	).Run()
 }
 
-func Register(db *firestore.Client, log *zap.SugaredLogger, router *mux.Router, openai gpt3.Client) {
+func Register(db *firestore.Client, log *zap.SugaredLogger, router *mux.Router, openai *openai.Client) {
 	p := handler.Handler{
 		Database: db,
 		Log:      log,

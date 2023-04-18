@@ -8,12 +8,13 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/PullRequestInc/go-gpt3"
+	"github.com/sashabaranov/go-openai"
 )
 
 type GetQuoteReq struct {
-	Topic string `json:"topic"`
-	ID    string `json:"id"`
+	Topic  string `json:"topic"`
+	Source string `json:"source"`
+	ID     string `json:"id"`
 }
 
 type Quote struct {
@@ -28,7 +29,7 @@ type GetQuoteResp struct {
 }
 
 const (
-	promptTemplate = "Provide me 1 famous quote with attribution about %s?"
+	promptTemplate = "Provide me 1 quote from %s with attribution about %s?"
 )
 
 func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
@@ -39,17 +40,26 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt := fmt.Sprintf(promptTemplate, req.Topic)
+	prompt := fmt.Sprintf(promptTemplate, req.Source, req.Topic)
 
-	completion, err := h.OpenAI.Completion(context.TODO(), gpt3.CompletionRequest{
-		Prompt:           []string{prompt},
-		MaxTokens:        gpt3.IntPtr(64),
-		TopP:             gpt3.Float32Ptr(1),
-		Temperature:      gpt3.Float32Ptr(0.7),
-		FrequencyPenalty: 0,
-		PresencePenalty:  0,
-		LogProbs:         gpt3.IntPtr(1),
-	})
+	completion, err := h.OpenAI.CreateChatCompletion(
+		context.TODO(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: prompt,
+				},
+			},
+			MaxTokens:        64,
+			TopP:             1,
+			Temperature:      0.7,
+			FrequencyPenalty: 0,
+			PresencePenalty:  0,
+		},
+	)
+
 	if err != nil {
 		h.Log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -65,7 +75,7 @@ func (h *Handler) getQuote(w http.ResponseWriter, r *http.Request) {
 	resp := GetQuoteResp{
 		Req:    req,
 		Prompt: prompt,
-		Quote:  adaptQuote(completion.Choices[0].Text),
+		Quote:  adaptQuote(completion.Choices[0].Message.Content),
 	}
 
 	h.Log.Infow("Got quote",

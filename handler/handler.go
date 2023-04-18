@@ -2,8 +2,8 @@ package handler
 
 import (
 	"cloud.google.com/go/firestore"
-	"github.com/PullRequestInc/go-gpt3"
 	"github.com/gorilla/mux"
+	openai "github.com/sashabaranov/go-openai"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -15,7 +15,7 @@ type Handler struct {
 	Log      *zap.SugaredLogger
 	Router   *mux.Router
 
-	OpenAI gpt3.Client
+	OpenAI *openai.Client
 }
 
 // New creates a Handler struct

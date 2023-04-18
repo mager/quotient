@@ -1,15 +1,13 @@
 package openai
 
 import (
-	"github.com/PullRequestInc/go-gpt3"
 	"github.com/mager/quotient/config"
+	openai "github.com/sashabaranov/go-openai"
 )
 
-func ProvideOpenAI(cfg config.Config) gpt3.Client {
-	opts := []gpt3.ClientOption{
-		gpt3.WithDefaultEngine("text-davinci-003"),
-	}
-	return gpt3.NewClient(cfg.OpenAIKey, opts...)
+func ProvideOpenAI(cfg config.Config) *openai.Client {
+	client := openai.NewClient(cfg.OpenAIKey)
+	return client
 }
 
 var Options = ProvideOpenAI

@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	cloud.google.com/go/firestore v1.9.0
-	github.com/PullRequestInc/go-gpt3 v1.1.11
 	github.com/gorilla/mux v1.8.0
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/sashabaranov/go-openai v1.8.0
 	go.uber.org/fx v1.19.1
 	go.uber.org/zap v1.23.0
 	google.golang.org/api v0.103.0
