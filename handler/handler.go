@@ -28,7 +28,14 @@ func New(h Handler) *Handler {
 func (h *Handler) registerRoutes() {
 	h.Router.HandleFunc("/health", h.health).Methods("GET")
 
+	// Emoquote
 	h.Router.HandleFunc("/me", h.me).Methods("POST")
 	h.Router.HandleFunc("/q", h.getQuote).Methods("POST")
 	h.Router.HandleFunc("/history", h.history).Methods("POST")
+
+	// BotWhisper
+	h.Router.HandleFunc("/persona", h.createPersona).Methods("POST")
+
+	// Geotory
+	h.Router.HandleFunc("/g/datasets/{userID}/{id}", h.getDataset).Methods("GET")
 }
